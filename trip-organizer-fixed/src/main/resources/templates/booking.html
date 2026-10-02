@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Trip - Travel Ease</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-plane-departure me-2"></i>Travel Ease</a>
+        <div class="ms-auto">
+            <a href="/trips" class="btn btn-outline-secondary btn-sm rounded-pill">← Back to Trips</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header text-white p-4" style="background:linear-gradient(135deg,#FF6B2B,#FF9F43)">
+                    <h4 class="mb-0 fw-bold"><i class="fas fa-calendar-check me-2"></i>Book Your Trip</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Trip Summary -->
+                    <div class="rounded-3 p-3 mb-4" style="background:#FFF8F5; border-left:4px solid #FF6B2B;">
+                        <div class="d-flex align-items-start gap-3">
+                            <img th:if="${trip.imageUrl != null and !trip.imageUrl.isEmpty()}"
+                                 th:src="${trip.imageUrl}"
+                                 class="rounded-3 flex-shrink-0"
+                                 style="width:80px;height:60px;object-fit:cover;"
+                                 onerror="this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600&q=80'">
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold text-primary mb-1" th:text="${trip.packageName}">Trip Name</h5>
+                                <div class="row g-1 text-muted small">
+                                    <div class="col-6"><i class="fas fa-map-marker-alt me-1"></i><span th:text="${trip.destination + ', ' + trip.country}">Location</span></div>
+                                    <div class="col-6"><i class="fas fa-clock me-1"></i><span th:text="${trip.durationDays}">7</span> days</div>
+                                    <div class="col-6"><i class="fas fa-star me-1 text-warning"></i>Rating: <span th:text="${trip.rating}">4.5</span></div>
+                                    <div class="col-6"><i class="fas fa-chair me-1"></i><span th:text="${trip.availableSeats}">20</span> seats left</div>
+                                </div>
+                            </div>
+                            <div class="text-end flex-shrink-0">
+                                <div class="fs-4 fw-bold text-primary">$<span th:text="${trip.price}">0</span></div>
+                                <small class="text-muted">per person</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${error}" class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i><span th:text="${error}"></span></div>
+
+                    <form action="/book" method="post">
+                        <input type="hidden" name="tripId" th:value="${trip.id}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Travel Date</label>
+                            <input type="date" name="travelDate" class="form-control form-control-lg rounded-3"
+                                   th:min="${minDate}" required>
+                            <div class="form-text">Select your preferred departure date</div>
+                        </div>
+
+                        <!-- Adults & Children -->
+                        <div class="rounded-3 p-3 mb-3" style="background:#f8f9fa; border:1px solid #dee2e6;">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-users me-2 text-primary"></i>Traveller Details</h6>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-user me-1 text-primary"></i>Adults
+                                        <small class="text-muted fw-normal">(Age 12+)</small>
+                                    </label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="changeCount('adults', -1)">−</button>
+                                        <input type="number" name="adults" id="adultsInput" class="form-control text-center fw-bold"
+                                               value="1" min="1" max="10" required onchange="updateTotal()">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="changeCount('adults', 1)">+</button>
+                                    </div>
+                                    <div class="form-text">Full price per adult</div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-child me-1 text-success"></i>Children
+                                        <small class="text-muted fw-normal">(Under 12)</small>
+                                    </label>
+                                    <div class="input-group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="changeCount('children', -1)">−</button>
+                                        <input type="number" name="children" id="childrenInput" class="form-control text-center fw-bold"
+                                               value="0" min="0" max="10" onchange="updateTotal()">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="changeCount('children', 1)">+</button>
+                                    </div>
+                                    <div class="form-text text-success"><i class="fas fa-tag me-1"></i>50% discount for children</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="rounded-3 p-3 mb-4" style="background:#FFF8F5; border:2px solid #FF6B2B;">
+                            <h6 class="fw-bold mb-2">Price Breakdown</h6>
+                            <div class="d-flex justify-content-between text-muted mb-1">
+                                <span>Adults: <span id="adultCount">1</span> × $<span id="adultPrice">0</span></span>
+                                <span>$<span id="adultTotal">0</span></span>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted mb-2" id="childRow" style="display:none!important;">
+                                <span>Children: <span id="childCount">0</span> × $<span id="childPrice">0</span> (50% off)</span>
+                                <span>$<span id="childTotal">0</span></span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between align-items-center fw-bold">
+                                <span>Estimated Total</span>
+                                <span class="text-primary fs-4" id="totalAmount">$0</span>
+                            </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-users me-1"></i>Total Travellers: <span id="totalTravellers">1</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-pill">
+                            <i class="fas fa-arrow-right me-2"></i>Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const pricePerPerson = /*[[${trip.price}]]*/ 0;
+
+    function changeCount(field, delta) {
+        const input = document.getElementById(field + 'Input');
+        let val = parseInt(input.value) + delta;
+        const min = parseInt(input.min);
+        const max = parseInt(input.max);
+        if (val < min) val = min;
+        if (val > max) val = max;
+        input.value = val;
+        updateTotal();
+    }
+
+    function updateTotal() {
+        const adults = parseInt(document.getElementById('adultsInput').value) || 1;
+        const children = parseInt(document.getElementById('childrenInput').value) || 0;
+        const childPrice = (pricePerPerson * 0.5).toFixed(2);
+        const adultTotal = pricePerPerson * adults;
+        const childTotal = pricePerPerson * 0.5 * children;
+        const total = adultTotal + childTotal;
+
+        document.getElementById('adultCount').textContent = adults;
+        document.getElementById('adultPrice').textContent = pricePerPerson.toLocaleString();
+        document.getElementById('adultTotal').textContent = adultTotal.toLocaleString();
+        document.getElementById('childCount').textContent = children;
+        document.getElementById('childPrice').textContent = parseFloat(childPrice).toLocaleString();
+        document.getElementById('childTotal').textContent = childTotal.toLocaleString();
+        document.getElementById('totalAmount').textContent = '$' + total.toLocaleString();
+        document.getElementById('totalTravellers').textContent = adults + children;
+
+        const childRow = document.getElementById('childRow');
+        childRow.style.display = children > 0 ? 'flex' : 'none';
+    }
+
+    updateTotal();
+</script>
+<script src="/js/chatbot-widget.js" defer></script>
+</body>
+</html>

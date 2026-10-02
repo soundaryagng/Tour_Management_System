@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${trip.packageName} + ' - Travel Ease'">Trip Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-plane-departure me-2"></i>Travel Ease</a>
+        <div class="ms-auto d-flex gap-2">
+            <a href="/trips" class="btn btn-outline-secondary btn-sm rounded-pill">← Back to Trips</a>
+            <a th:if="${session.user == null}" href="/login" class="btn btn-primary btn-sm rounded-pill">Login</a>
+            <a th:if="${session.user != null}" href="/logout" class="btn btn-outline-danger btn-sm rounded-pill">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Trip Info -->
+        <div class="col-lg-8">
+            <!-- Hero Image -->
+            <div class="position-relative mb-4">
+                <img th:if="${trip.imageUrl != null and !trip.imageUrl.isEmpty()}"
+                     th:src="${trip.imageUrl}"
+                     th:alt="${trip.packageName}"
+                     class="trip-detail-hero"
+                     onerror="this.style.display='none'; document.getElementById('fallback-hero').style.display='flex';">
+                <div id="fallback-hero"
+                     class="trip-detail-placeholder d-flex align-items-center justify-content-center text-white"
+                     th:style="${trip.imageUrl != null and !trip.imageUrl.isEmpty()} ? 'display:none !important' : ''">
+                    <div class="text-center">
+                        <i class="fas fa-globe-americas fa-4x mb-3"></i>
+                        <h2 class="fw-bold" th:text="${trip.packageName}">Package Name</h2>
+                        <p class="mb-0" th:text="${trip.destination + ', ' + trip.country}">Location</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Title & Badges -->
+            <h1 class="fw-bold mb-2" th:text="${trip.packageName}">Package Name</h1>
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <span class="badge fs-6 py-2 px-3 rounded-pill"
+                      th:classappend="${trip.international} ? 'bg-primary' : 'bg-success'"
+                      th:text="${trip.international} ? '🌍 International' : '🇮🇳 National'">Type</span>
+                <span class="badge bg-light text-dark fs-6 py-2 px-3 border rounded-pill">
+                    <i class="fas fa-clock me-1 text-primary"></i><span th:text="${trip.durationDays}">7</span> Days
+                </span>
+                <span class="badge bg-light text-dark fs-6 py-2 px-3 border rounded-pill">
+                    <i class="fas fa-star me-1 text-warning"></i><span th:text="${trip.rating}">4.8</span> Rating
+                </span>
+                <span class="badge bg-light text-dark fs-6 py-2 px-3 border rounded-pill">
+                    <i class="fas fa-chair me-1 text-success"></i><span th:text="${trip.availableSeats}">20</span> Seats Left
+                </span>
+            </div>
+
+            <!-- Description -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-3 section-header">About This Trip</h4>
+                    <p class="text-muted lh-lg" th:text="${trip.description}">Description here</p>
+                </div>
+            </div>
+
+            <!-- Inclusions & Exclusions -->
+            <div class="row g-3">
+                <div class="col-md-6" th:if="${trip.inclusions != null and !trip.inclusions.isEmpty()}">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold text-success mb-3"><i class="fas fa-check-circle me-2"></i>What's Included</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li th:each="item : ${#strings.arraySplit(trip.inclusions, ',')}"
+                                    class="mb-2 incl-item text-muted small" th:text="${#strings.trim(item)}">Item</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" th:if="${trip.exclusions != null and !trip.exclusions.isEmpty()}">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold text-danger mb-3"><i class="fas fa-times-circle me-2"></i>Not Included</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li th:each="item : ${#strings.arraySplit(trip.exclusions, ',')}"
+                                    class="mb-2 excl-item text-muted small" th:text="${#strings.trim(item)}">Item</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Card -->
+        <div class="col-lg-4">
+            <div class="card shadow border-0 rounded-4 sticky-top" style="top:80px">
+                <div class="card-header text-white rounded-top-4 p-4" style="background:linear-gradient(135deg,#FF6B2B,#FF9F43)">
+                    <div class="text-center">
+                        <span class="display-6 fw-bold">$<span th:text="${trip.price}">0</span></span>
+                        <span class="opacity-75"> / person</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-unstyled mb-4">
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            <span th:text="${trip.destination + ', ' + trip.country}">Location</span>
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <span th:text="${trip.durationDays}">7</span> days duration
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <span th:text="${trip.availableSeats}">20</span> seats available
+                        </li>
+                        <li class="mb-2 text-muted">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            Rated <span th:text="${trip.rating}">4.8</span> / 5.0
+                        </li>
+                    </ul>
+
+                    <a th:href="@{/book/{id}(id=${trip.id})}" class="btn btn-primary w-100 py-2 fw-bold btn-lg rounded-pill">
+                        <i class="fas fa-calendar-check me-2"></i>Book This Trip
+                    </a>
+                    <a href="/trips" class="btn btn-outline-secondary w-100 mt-2 rounded-pill">← Browse More Trips</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white py-3 mt-4">
+    <div class="container text-center">
+        <p class="mb-0 text-white-50">© 2024 Travel Ease — Explore the World</p>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/chatbot-widget.js" defer></script>
+</body>
+</html>
